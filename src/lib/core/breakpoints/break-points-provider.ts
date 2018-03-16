@@ -14,6 +14,7 @@ import {ORIENTATION_BREAKPOINTS} from './data/orientation-break-points';
 
 import {extendObject} from '../../utils/object-extend';
 import {mergeByAlias, validateSuffixes} from './breakpoint-tools';
+import {BREAKPOINT} from '../tokens/breakpoint-token';
 
 
 /**
@@ -39,7 +40,7 @@ export interface BreakPointProviderOptions {
 export function buildMergedBreakPoints(_custom?: BreakPoint[],
                                        options?: BreakPointProviderOptions) {
   options = extendObject({}, {
-        defaults: true,       // exclude pre-configured, internal default breakpoints
+        defaults: true,         // exclude pre-configured, internal default breakpoints
         orientation: false      // exclude pre-configured, internal orientations breakpoints
   }, options || {});
 
@@ -68,17 +69,28 @@ export function DEFAULT_BREAKPOINTS_PROVIDER_FACTORY() {
  *        of the existing (and not be added as an extra breakpoint entry).
  *        [xs, gt-xs, sm, gt-sm, md, gt-md, lg, gt-lg, xl]
  */
-export const DEFAULT_BREAKPOINTS_PROVIDER = { // tslint:disable-line:variable-name
+export const DEFAULT_BREAKPOINTS_PROVIDER = {
   provide: BREAKPOINTS,
   useFactory: DEFAULT_BREAKPOINTS_PROVIDER_FACTORY
 };
+
+export function BREAKPOINTS_PROVIDER_FACTORY(breakpoints: BreakPoint[]) {
+  return validateSuffixes([...DEFAULT_BREAKPOINTS, ...breakpoints]);
+}
+
+export const BREAKPOINTS_PROVIDER = {
+  provide: BREAKPOINTS,
+  useFactory: BREAKPOINTS_PROVIDER_FACTORY,
+  deps: [BREAKPOINT]
+};
+
 /**
  * Use with FlexLayoutModule.CUSTOM_BREAKPOINTS_PROVIDER_FACTORY!
  */
-export function CUSTOM_BREAKPOINTS_PROVIDER_FACTORY(_custom?: BreakPoint[],
+export function CUSTOM_BREAKPOINTS_PROVIDER_FACTORY(custom?: BreakPoint[],
                                                     options?: BreakPointProviderOptions) {
   return {
     provide: <InjectionToken<BreakPoint[]>>BREAKPOINTS,
-    useFactory: buildMergedBreakPoints(_custom, options)
+    useFactory: buildMergedBreakPoints(custom, options)
   };
 }
